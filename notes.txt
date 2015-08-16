@@ -1,0 +1,381 @@
+Resources
+=========
+Resource:
+Get		/resource			index	resource.index
+Get		/resource/create	create	resource.create
+Post	/resource			store	resource.store
+Get		/resource/{id}		show	resource.show
+Get		/resource/{id}/edit	edit	resource.edit
+Put		/resource/{id}		update	resource.update
+Delete	/resource/{id}		destroy	resource.destroy	
+----------
+Coffee Shop: 
+*	Controller: HomeController
+
+*	Views:
+*		master				used by all views
+			*include shopping cart link (/user/{user}/cart) if logged on
+			*includes login link (/login) if not logged in
+			*includes logoff link (/logoff) if logged in
+			*includes user link (/user/{id}) if logged in
+			*displays message if passed
+			* include home page link (/home)
+
+*		home.index			home page
+			*includes user list link (/user) (admin only)
+			*includes product list link (/product)
+	
+*	Requests:	
+*		index	- get		/home	= show home page
+			Input: none
+			Output: home.index view
+----------
+*User login process:
+
+*	Controller: LoginController
+
+*	Views: 
+*		login			login form 
+
+*	index	- get		/login		get login form
+		Input: none
+		Output: login view
+		
+*	store	- post 		/login	= login
+		Input: data from login view
+		Output: Redirect to /home with login confirmation message
+----------	
+*User logoff process:
+	Controller: LogoffController
+
+	Requests:
+*		index	- get		/logoff	= logoff
+			Input: none
+			Output: Redirect to /home with logoff confirmation message
+----------
+*User: 
+	Controller: UserController
+
+	Model: User
+
+	Table: users
+		id: referred to by orders.user_id
+		    referred to by cart.user_id
+		username:
+		password:
+		remember_token: used to remember logon
+		admin:
+		email:
+		phone:
+		name:
+		street:
+		city:
+		state:
+		zip:
+		cc_type:
+		cc_number:
+		timestamps:
+
+	Views: 
+		*user.index			list of users (admin only)
+			*link to /user/{id} for each user
+
+		*user.edit			edit user
+
+		*user.show			display user info
+			*link to /user/{id}/cart
+			link to /order
+			*link to /user/{id}/edit
+
+	Requests:
+		All requests to User resources except create and store require login
+*		index	- get		/user		get list of users (admin)
+			Input: none
+			Output: user.index view
+				
+*		create	- get		/user/create	= get new user form
+			Input: none
+			Output: empty user.edit view
+
+*		store	- post 		/user			= add the new user from form
+			Input: info from user.edit view
+			Output: Redirect to /home with new user confirmation message
+
+*		show	- get		/user/{id}		= display user info (current user or admin only)
+			Input: none
+			Output: user.show view
+
+*		edit	- get		/user/{id}/edit	= get user edit form  (current user or admin only)
+			Input: none
+			Output: user.edit view with user info
+
+*		update	- put		/user/{id}		= update user from form  (current user or admin only)
+			Input: info from user.edit view
+			Output: Redirect to /home view with update confirmation message	
+----------
+?Products: 
+	Controller: ProductController
+
+	Model: Product
+
+	Table: products
+		id: referred to by order_items.order_id
+		    referred to by cart.order_id
+		product_name:
+		description:
+		price:
+		timestamps:
+
+	Views: 
+*		product.index		list of products
+			link to /product/{id} for each product
+			link to /product/create (admin only)
+
+*		product.edit		product edit form
+			link to delete product (admin only)
+
+?		product.show		product display
+			*link to /product
+			?link to add product to cart product (cust only)
+			link to /product/{prod}/edit (admin only)		
+			link to /product/{prod}/delete (admin only)
+	
+	Requests:
+		*index	- get		/product		= display all products
+			Input: none
+			Output: product.index view
+			
+		*create	- get		/product/create	= get a new product form (admin only))
+			Input: none
+			Output: empty product.edit view
+				
+		*store	- post 		/product = add a new product from form (admin)
+			Input: info from product.index form
+			Output: Redirect to /home with new product confirmation message
+			
+		?show	- get		/product/{prod}	= display a specific product
+			Input: none
+			Output: product.show view
+			
+		*edit	- get		/product/{prod}/edit	= get edit a product form (admin)
+			Input: none
+			Output: product.edit view 
+						
+			Input: edited info from product.edit view
+			Output: Redirect to /product/{prod}/show with update confirmation message
+	
+		*update	- put		/product/{prod}	= update a specific product from form (admin)
+
+		destroy		- get /product/{prod}/delete
+			Input: none
+			Output: View to acknowledge delete
+									 		
+		*destroy	- delete 	/product/{prod}	= delete a specific product (admin only)
+			Input: none
+			Output: Redirect to /product with confirmation message 
+----------
+Cart:
+	Controller: CartController
+
+	Model: Cart
+
+	Table: carts
+		id:
+		user_id: refers to user.id
+		product_id: refers to product.id
+		quantity:
+		timestamps:
+
+	Views:
+		user.cart.index			list of cart contents
+			*links to /user/{user}/cart/{cart}/edit for each product
+			*links to /user/{user}/cart/{cart}/edit for each product
+			*links to /user/{user}/cart/{cart}/delete for each product
+			*links to /user/{user}/cart/{cart} to show each product
+			link to checkout
+
+		*user.cart.edit			edit a product in cart
+			*link to /user/{user}/cart/{cart}/delete
+
+		*user.cart.show			show a product in cart
+			*link to /user/{user}/cart/{cart}/edit for product
+			*link to /user/{user}/cart/{cart}/delete for product
+	
+	Requests:
+		*index	- get		/user/{user}/cart		= list cart contents
+			Input: none
+			Output: user.cart.index view
+			
+		*create	- get		/user/{user}/cart/create?product={id} = create cart item for product
+			Input: none
+			Output: empty user.cart.edit view
+			
+		*store	- post 		/user/{user}/cart?product={id}		= store new cart item
+			Input: user.cart.edit data
+			Output: user.cart.index with confirmation message
+			
+		*show	- get		/user/{user}/cart/{cart} = get a cart item
+						{user} = id of user that owns cart
+						{cart} = id of product in cart
+			Input: none
+			Output: user.cart.show view
+			
+		*edit	- get		/user/{user}/cart/{cart}/edit = edit a cart item
+						{user} = id of user that owns cart
+						{cart} = id of product in cart
+			Input: none
+			Output: user.cart.edit view with cart product data
+			
+		*update	- put		/user/{user}/cart/{cart}	= update a cart item
+						{user} = id of user that owns cart
+						{cart} = id of product in cart
+			Input: user.cart.view data
+			Output: Redirect to /user/{user}/cart with confirmation message
+			
+		*destroy - get		/user/{user}/cart/{cart}/destroy = get delete confirm form
+						{user} = id of user that owns cart
+						{cart} = id of product in cart
+
+			Input: none
+			Output: user.cart.delete
+
+		*destroy	- delete 	/user/{user}/cart/{cart}	= delete a cart item
+						{user} = id of user that owns cart
+						{cart} = id of product in cart
+			Input: none
+			Output: redirect to /user/{user}/cart with confirmation message
+----------	 
+Order:
+
+	Controller: OrderController
+
+	Model: Order
+
+	Table: orders
+		id: referred to by order_items.order_id
+		user_id: refers to user.id
+		email: copied from User during checkout
+		phone: copied from User during checkout
+		name: copied from User during checkout
+		street: copied from User during checkout
+		city: copied from User during checkout
+		state: copied from User during checkout
+		zip: copied from User during checkout
+		cc_type: copied from User during checkout
+		cc_number: copied from User during checkout
+		timestamps:
+		
+	Views:
+
+		order.index			list of orders
+			for users show all orders for current user
+			for admin show all orders for all users
+			link_to /order/{order} for each order shown
+
+		order.edit			edit an order
+			not used for now
+
+		order.show			display an order
+			show order detail
+			link_to /order
+			link_to /orderitem/{item} for each order item shown
+
+	Requests:
+		index	- get		/order			= display all orders
+			Input: none
+			Output: order.index view
+			
+		create	- get		/order/create	= get new order form
+			Input: none
+			Output: empty order.edit view
+			not used for now
+	
+		store	- post 		/order			= add new order from form
+			Input: new order data
+			Output: home.index view wtih new order confirmation
+			will be used by checkout process
+				
+		show	- get		/order/{order}	= display a specific order
+			Input: none
+			Output: order.show view
+	
+		edit	- get		/order/{order}/edit	= edit a specific order
+			Input: none
+			Output: order.edit with order info
+			not used for now
+			
+		update	- put		/order/{order}	= update a specific order
+			Input: edited order.edit data
+			Output: order.index view with confirmation message
+			not used for now
+	
+		destroy	- delete 	/order/{order}	= delete a specific order
+			Input: none
+			Output: order deletion confirmation
+			not used for now
+----------
+Order Item: 
+	Controller: OrderItemController
+
+	Model: OrderItem
+
+	Table: order_items
+		id:
+		order_id: refers to orders.id
+		product_id: refers to products.id
+		quantity: copied from Cart during checkout
+		price: copied from Product during checkout
+		timestamps:
+
+	Views:
+
+		orderItem.index		list of ordered products
+
+		orderItem.edit		edit an ordered item
+
+		orderItem.show		display  ordered item
+
+	Requests:		
+		index	- get		/orderitem		= display all ordered items
+			Input: none
+			Output: orderItem.index view
+			
+		create	- get		/orderitem/create	= form to create a new order item
+			Input: none
+			Output: orderItem.index view
+			
+		store	- post 		/orderitem		= store new order item
+			Input: orderitem.edit  data
+			Output: orderitem.index view with confirmation message
+			
+		show	- get		/orderitem/{item} = show a specific order item
+			Input: none
+			Output: orderitem.show view
+			
+		edit	- get		/orderitem/{item}/edit = edit a specific order item
+			Input: none
+			Output: orderitem.edit with item data form
+			
+		update	- put		/orderitem/{item}	= upate a specific order item
+			Input: orderitem.edit view data
+			Output: orderitem.index with confirmation message
+	
+		destroy	- delete 	/orderitem/{item}	= delete a specific order item
+			Input: none
+			Output:   orderitem.index with confirmation message
+----------
+Checkout process: 
+	Controller: CheckoutController
+	
+	Views:
+		checkout.index		checkout form
+
+	Requests:
+		index	- get		/checkout
+			Input: none
+			Output: checkout.index
+			
+		store	- post 		/checkou	
+			Input: checkout,index data
+			Output: home.index with confirmation message
+		
