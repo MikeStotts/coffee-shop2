@@ -32,7 +32,7 @@ enter:
 
 Sever can be accessed at localhost:8000
 
-### Use Web Server
+### Using with Web Server
 To deploy to an actual web server (i.e. Apache) URL re-writing must be supported.
 The projects "public" directory contains and .htaccess file the can be used to do
 the re-writing.
