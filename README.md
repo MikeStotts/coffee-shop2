@@ -24,6 +24,7 @@ Apply migrations to build database and then seed database:
 
 ##Usage:
 
+### Testing with Artisan
 For simple testing, PHP's built-in web server can be used. In the project directory
 enter:
 
@@ -31,6 +32,10 @@ enter:
 
 Sever can be accessed at localhost:8000
 
+### Use Web Server
 To deploy to an actual web server (i.e. Apache) URL re-writing must be supported.
 The projects "public" directory contains and .htaccess file the can be used to do
 the re-writing.
+
+The application is actually served from the projects "public" directory. Therefore the "public" directory must be accessible by the server:
+
